@@ -38,10 +38,22 @@ router.post('/', async (req: Request, res: Response) => {
   try {
     send('status', { step: 1, message: 'Creating Coolify project...' });
 
-    const coolifyProject = await coolifyPost('/projects', {
-      name: body.name,
-      description: `Managed by Vercelify — ${body.environment}`,
-    });
+    // Retry with timestamp suffix if name already exists in Coolify (422)
+    let coolifyProject: { uuid: string };
+    try {
+      coolifyProject = await coolifyPost('/projects', {
+        name: body.name,
+        description: `Managed by Vercelify — ${body.environment}`,
+      });
+    } catch (err) {
+      if (String(err).includes('422')) {
+        const uniqueName = `${body.name}-${Date.now().toString(36)}`;
+        coolifyProject = await coolifyPost('/projects', {
+          name: uniqueName,
+          description: `Managed by Vercelify — ${body.environment}`,
+        });
+      } else { throw err; }
+    }
     const coolifyProjectUuid: string = coolifyProject.uuid;
 
     send('status', { step: 2, message: 'Connecting GitHub repository...' });
