@@ -16,7 +16,7 @@ router.get('/', async (_req: Request, res: Response) => {
 });
 
 router.get('/:id', (req: Request, res: Response) => {
-  const project = findProject(req.params.id);
+  const project = findProject(req.params['id'] as string);
   if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
   res.json(project);
 });
@@ -111,7 +111,8 @@ router.post('/', async (req: Request, res: Response) => {
 });
 
 router.delete('/:id', async (req: Request, res: Response) => {
-  const project = findProject(req.params.id);
+  const id = req.params['id'] as string;
+  const project = findProject(id);
   if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
 
   try {
@@ -119,7 +120,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
       await coolifyDelete(`/applications/${project.appServiceUuid}`).catch(() => null);
     if (project.supabaseServiceUuid)
       await coolifyDelete(`/services/${project.supabaseServiceUuid}`).catch(() => null);
-    deleteProject(req.params.id);
+    deleteProject(id);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: String(err) });
@@ -127,7 +128,7 @@ router.delete('/:id', async (req: Request, res: Response) => {
 });
 
 router.get('/:id/supabase-keys', (req: Request, res: Response) => {
-  const project = findProject(req.params.id);
+  const project = findProject(req.params['id'] as string);
   if (!project) { res.status(404).json({ error: 'Project not found' }); return; }
   res.json({ anonKey: project.supabaseAnonKey, studioUrl: project.supabaseStudioUrl });
 });
