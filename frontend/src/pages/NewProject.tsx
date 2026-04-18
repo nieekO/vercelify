@@ -30,7 +30,6 @@ export function NewProject() {
   const [deployStatuses, setDeployStatuses] = useState<DeployStatus[]>([]);
   const [deployDone, setDeployDone] = useState(false);
   const [deployError, setDeployError] = useState('');
-  const [deploying, setDeploying] = useState(false);
 
   const handleImport = (repo: string) => {
     setSelectedRepo(repo);
@@ -40,7 +39,6 @@ export function NewProject() {
 
   const handleDeploy = async () => {
     setActiveStep(2);
-    setDeploying(true);
     setDeployError('');
     setDeployStatuses([]);
 
@@ -74,7 +72,6 @@ export function NewProject() {
         }
         if (line.startsWith('event: done')) {
           setDeployDone(true);
-          setDeploying(false);
         }
         if (line.startsWith('event: error')) {
           // error data on next line
@@ -84,13 +81,11 @@ export function NewProject() {
             const d = JSON.parse(line.slice(5));
             if (d.message && !d.step) {
               setDeployError(d.message);
-              setDeploying(false);
-            }
+                }
           } catch { /* ignore */ }
         }
       }
     }
-    setDeploying(false);
   };
 
   return (

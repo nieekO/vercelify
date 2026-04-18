@@ -3,7 +3,6 @@ import { ExternalLink } from 'lucide-react';
 import api from '../services/api';
 import { useProjects } from '../hooks/useProjects';
 import { StatusDot } from '../components/ui/StatusDot';
-import { Progress } from '../components/ui/Progress';
 import { Skeleton } from '../components/ui/Skeleton';
 import { CoolifyServer, CoolifyDeployment } from '../types';
 
