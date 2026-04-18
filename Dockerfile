@@ -2,7 +2,7 @@
 FROM node:20-alpine AS frontend-build
 WORKDIR /app/frontend
 COPY frontend/package*.json ./
-RUN npm install
+RUN NODE_ENV=development npm install
 COPY frontend/ ./
 RUN npm run build
 
@@ -10,7 +10,7 @@ RUN npm run build
 FROM node:20-alpine AS backend-build
 WORKDIR /app
 COPY backend/package*.json ./
-RUN npm install
+RUN NODE_ENV=development npm install
 COPY backend/ ./
 RUN npm run build
 
