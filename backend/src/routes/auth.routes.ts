@@ -7,8 +7,8 @@ const router = Router();
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { error: 'Too many login attempts' },
+  max: 15,
+  message: { error: 'Too many login attempts, please wait 15 minutes' },
 });
 
 router.post('/login', loginLimiter, async (req: Request, res: Response) => {
