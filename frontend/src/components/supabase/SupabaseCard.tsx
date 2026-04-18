@@ -29,6 +29,18 @@ export function SupabaseCard({ project }: { project: VercelifyProject }) {
           </button>
         </div>
       )}
+      {project.supabaseSchemas?.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-xs text-gray-500 uppercase tracking-wider">Custom Schemas</p>
+          <div className="flex flex-wrap gap-1.5">
+            {project.supabaseSchemas.map(s => (
+              <span key={s} className="text-xs font-mono bg-gray-900 border border-[rgba(255,255,255,0.08)] rounded-[4px] px-2 py-0.5 text-gray-300">
+                {s}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="flex gap-2">
         {project.supabaseStudioUrl && (
           <a href={project.supabaseStudioUrl} target="_blank" rel="noopener noreferrer">

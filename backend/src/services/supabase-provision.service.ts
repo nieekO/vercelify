@@ -1,4 +1,5 @@
 import { coolifyPost, coolifyGet, coolifyPut } from './coolify.service';
+import { setupSupabaseSchemas } from './schema.service';
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_WAIT_MS = 10 * 60 * 1000;
@@ -9,6 +10,7 @@ export interface SupabaseProvisionResult {
   anonKey: string;
   serviceRoleKey: string;
   kongUrl: string;
+  schemas: string[];
 }
 
 export async function provisionSupabase(
@@ -41,7 +43,17 @@ export async function provisionSupabase(
   const anonKey = envVars['SERVICE_SUPABASEANON_KEY'] || envVars['ANON_KEY'] || '';
   const serviceRoleKey = envVars['SERVICE_SUPABASESERVICE_ROLE_KEY'] || envVars['SERVICE_ROLE_KEY'] || '';
 
-  return { serviceUuid, studioUrl, anonKey, serviceRoleKey, kongUrl };
+  onStatus?.('Setting up custom schemas...');
+  const schemas = await setupSupabaseSchemas(
+    serviceUuid,
+    projectName,
+    kongUrl,
+    serviceRoleKey,
+    envVars,
+    onStatus
+  );
+
+  return { serviceUuid, studioUrl, anonKey, serviceRoleKey, kongUrl, schemas };
 }
 
 async function waitForServiceHealthy(uuid: string, onStatus?: (msg: string) => void): Promise<void> {

@@ -14,6 +14,7 @@ export interface VercelifyProject {
   buildCommand: string;
   outputDir: string;
   port: number;
+  supabaseSchemas: string[];
 }
 
 export interface CoolifyServer {

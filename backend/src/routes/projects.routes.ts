@@ -64,6 +64,7 @@ router.post('/', async (req: Request, res: Response) => {
     let anonKey = '';
     let serviceRoleKey = '';
     let kongUrl = '';
+    let supabaseSchemas: string[] = [];
 
     if (body.createSupabase !== false) {
       send('status', { step: 3, message: 'Deploying Supabase instance...' });
@@ -75,6 +76,7 @@ router.post('/', async (req: Request, res: Response) => {
       anonKey = supabase.anonKey;
       serviceRoleKey = supabase.serviceRoleKey;
       kongUrl = supabase.kongUrl;
+      supabaseSchemas = supabase.schemas;
 
       send('status', { step: 4, message: 'Configuring environment variables...' });
       await setAppEnvVars(appServiceUuid, kongUrl, anonKey, serviceRoleKey);
@@ -99,6 +101,7 @@ router.post('/', async (req: Request, res: Response) => {
       buildCommand: body.buildCommand || 'npm run build',
       outputDir: body.outputDir || 'dist',
       port: body.port || 3000,
+      supabaseSchemas,
     };
 
     saveProject(project);
