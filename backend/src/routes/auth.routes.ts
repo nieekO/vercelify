@@ -18,8 +18,17 @@ router.post('/login', loginLimiter, async (req: Request, res: Response) => {
     return;
   }
 
-  const hash = process.env.DASHBOARD_PASSWORD_HASH!;
-  const valid = await bcrypt.compare(password, hash);
+  // DASHBOARD_PASSWORD: plaintext comparison (Coolify-safe, no $ interpolation issues)
+  // DASHBOARD_PASSWORD_HASH: bcrypt fallback for local dev
+  let valid = false;
+  const plain = process.env.DASHBOARD_PASSWORD;
+  if (plain) {
+    valid = password === plain;
+  } else {
+    const hash = process.env.DASHBOARD_PASSWORD_HASH!;
+    valid = await bcrypt.compare(password, hash);
+  }
+
   if (!valid) {
     res.status(401).json({ error: 'Invalid password' });
     return;
