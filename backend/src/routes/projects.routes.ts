@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { readProjects, findProject, saveProject, deleteProject } from '../services/projects.service';
 import { provisionSupabase, setAppEnvVars } from '../services/supabase-provision.service';
-import { coolifyPost, coolifyDelete } from '../services/coolify.service';
+import { coolifyGet, coolifyPost, coolifyDelete } from '../services/coolify.service';
 import { CreateProjectRequest, VercelifyProject } from '../types';
 
 const router = Router();
@@ -13,6 +13,51 @@ router.get('/', async (_req: Request, res: Response) => {
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }
+});
+
+router.get('/importable', async (_req: Request, res: Response) => {
+  try {
+    const existing = readProjects();
+    const existingUuids = new Set(existing.map(p => p.appServiceUuid).filter(Boolean));
+    const data = await coolifyGet('/applications');
+    const apps: Array<{ uuid: string }> = Array.isArray(data) ? data : (data as { data?: unknown[] })?.data || [];
+    res.json(apps.filter(app => !existingUuids.has(app.uuid)));
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
+});
+
+router.post('/import', (req: Request, res: Response) => {
+  const app = req.body as {
+    uuid?: string; name?: string; git_repository?: string;
+    git_branch?: string; project_uuid?: string; fqdn?: string;
+  };
+  if (!app.uuid || !app.name) {
+    res.status(400).json({ error: 'uuid and name are required' });
+    return;
+  }
+  const rawFqdn = app.fqdn || '';
+  const appUrl = rawFqdn ? (rawFqdn.startsWith('http') ? rawFqdn : `https://${rawFqdn}`) : '';
+  const project: VercelifyProject = {
+    id: randomUUID(),
+    name: app.name,
+    environment: 'production',
+    createdAt: new Date().toISOString(),
+    coolifyProjectUuid: app.project_uuid || '',
+    appServiceUuid: app.uuid,
+    supabaseServiceUuid: '',
+    appUrl,
+    supabaseStudioUrl: '',
+    supabaseAnonKey: '',
+    gitRepo: (app.git_repository || '').replace('https://github.com/', ''),
+    gitBranch: app.git_branch || 'main',
+    buildCommand: 'npm run build',
+    outputDir: 'dist',
+    port: 3000,
+    supabaseSchemas: [],
+  };
+  saveProject(project);
+  res.json({ project });
 });
 
 router.get('/:id', (req: Request, res: Response) => {
