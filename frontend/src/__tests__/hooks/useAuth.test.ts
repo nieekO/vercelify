@@ -1,14 +1,15 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
-const mockGet = vi.fn();
-const mockPost = vi.fn();
-
 vi.mock('../../services/api', () => ({
-  default: { get: mockGet, post: mockPost },
+  default: { get: vi.fn(), post: vi.fn() },
 }));
 
+import api from '../../services/api';
 import { useAuth } from '../../hooks/useAuth';
+
+const mockGet = vi.mocked(api.get);
+const mockPost = vi.mocked(api.post);
 
 describe('useAuth', () => {
   beforeEach(() => {

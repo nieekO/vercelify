@@ -29,7 +29,7 @@ describe('authMiddleware', () => {
   });
 
   it('calls next() and attaches user for a valid token', async () => {
-    const token = makeToken({ sub: 'admin', iat: 1 });
+    const token = makeToken({ sub: 'admin' });
     const res = await request(app)
       .get('/protected')
       .set('Authorization', `Bearer ${token}`);

@@ -10,7 +10,7 @@ import {
 } from '../../services/projects.service';
 import { VercelifyProject } from '../../types';
 
-const DATA_PATH = process.env.DATA_PATH!;
+const DATA_PATH = path.resolve(process.env.DATA_PATH!);
 const DATA_DIR = path.dirname(DATA_PATH);
 
 const PROJECT_A: VercelifyProject = {
@@ -114,10 +114,14 @@ describe('projects.service', () => {
   describe('DATA_PATH env variable', () => {
     it('uses DATA_PATH env variable when set', () => {
       const original = process.env.DATA_PATH;
-      process.env.DATA_PATH = '/custom/path/data.json';
+      const customRaw = '/custom/path/data.json';
+      process.env.DATA_PATH = customRaw;
       mockedFs.existsSync.mockReturnValue(false);
       readProjects();
-      expect(mockedFs.mkdirSync).toHaveBeenCalledWith('/custom/path', { recursive: true });
+      expect(mockedFs.mkdirSync).toHaveBeenCalledWith(
+        path.dirname(path.resolve(customRaw)),
+        { recursive: true },
+      );
       process.env.DATA_PATH = original;
     });
   });

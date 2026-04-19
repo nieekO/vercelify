@@ -216,8 +216,8 @@ describe('updateExposedSchemas — via setupSupabaseSchemas (meta ok)', () => {
     ]);
     await setupSupabaseSchemas('svc', 'newschema', 'http://k', 'k', {});
     expect(mockCoolifyPut).toHaveBeenCalledWith(
-      expect.stringContaining('PGRST_DB_SCHEMAS'.toLowerCase().replace('_', '')),
-      expect.anything(),
+      expect.stringContaining('/environment-variables/42'),
+      expect.objectContaining({ key: 'PGRST_DB_SCHEMAS' }),
     );
   });
 

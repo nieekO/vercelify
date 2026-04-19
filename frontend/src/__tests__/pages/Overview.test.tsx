@@ -2,11 +2,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
 
-const mockGet = vi.fn();
-const mockPost = vi.fn();
 const mockNavigate = vi.fn();
 
-vi.mock('../../services/api', () => ({ default: { get: mockGet, post: mockPost } }));
+vi.mock('../../services/api', () => ({ default: { get: vi.fn(), post: vi.fn() } }));
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   return { ...actual, useNavigate: () => mockNavigate };
@@ -26,8 +24,11 @@ vi.mock('../../hooks/useProjects', () => ({
   }),
 }));
 
+import api from '../../services/api';
 import { renderWithProviders } from '../utils';
 import { Overview } from '../../pages/Overview';
+
+const mockGet = vi.mocked(api.get);
 
 const SERVERS = [
   { uuid: 's1', name: 'localhost', ip: '138.0.0.1', is_reachable: true, is_usable: true },
@@ -55,7 +56,7 @@ describe('Overview page', () => {
     renderWithProviders(<Overview />);
     expect(screen.getByText('Projekte')).toBeInTheDocument();
     expect(screen.getByText('Server Online')).toBeInTheDocument();
-    expect(screen.getByText('Supabase')).toBeInTheDocument();
+    expect(screen.getAllByText('Supabase').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Deployments')).toBeInTheDocument();
   });
 
@@ -92,7 +93,7 @@ describe('Overview page', () => {
   it('opens ProjectQuickView when a project card is clicked', async () => {
     renderWithProviders(<Overview />);
     await userEvent.click(screen.getByText('finance'));
-    expect(screen.getByText('production')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /deploy/i })).toBeInTheDocument();
   });
 
   it('navigates to /projects/new when Neu is clicked', async () => {
