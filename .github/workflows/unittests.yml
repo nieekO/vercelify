@@ -1,0 +1,245 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # ─── Backend: Services ────────────────────────────────────────────────────────
+  backend-services:
+    name: "Backend — Services"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run service tests
+        run: npm test -- --testPathPattern="services" --coverageDirectory=coverage-services
+        env:
+          JWT_SECRET: test-secret-key
+          DASHBOARD_PASSWORD: test-password
+          COOLIFY_API_URL: http://localhost/api/v1
+          COOLIFY_API_TOKEN: test-token
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-backend-services
+          path: backend/coverage-services/
+
+  # ─── Backend: Middleware ──────────────────────────────────────────────────────
+  backend-middleware:
+    name: "Backend — Middleware"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run middleware tests
+        run: npm test -- --testPathPattern="middleware" --coverageDirectory=coverage-middleware
+        env:
+          JWT_SECRET: test-secret-key-middleware
+          DASHBOARD_PASSWORD: test-password
+
+  # ─── Backend: Routes ─────────────────────────────────────────────────────────
+  backend-routes:
+    name: "Backend — Routes"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run route tests
+        run: npm test -- --testPathPattern="routes" --coverageDirectory=coverage-routes
+        env:
+          JWT_SECRET: test-secret-key-routes
+          DASHBOARD_PASSWORD: test-password
+          COOLIFY_API_URL: http://localhost/api/v1
+          COOLIFY_API_TOKEN: test-token
+          COOLIFY_APPS_SERVER_UUID: apps-server
+          COOLIFY_INFRA_SERVER_UUID: infra-server
+          COOLIFY_DEFAULT_PROJECT_UUID: default-project
+          DATA_PATH: /tmp/test-projects.json
+
+  # ─── Backend: Full coverage report ───────────────────────────────────────────
+  backend-coverage:
+    name: "Backend — Full Coverage"
+    runs-on: ubuntu-latest
+    needs: [backend-services, backend-middleware, backend-routes]
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run all tests with coverage
+        run: npm test -- --coverage
+        env:
+          JWT_SECRET: test-secret-key-full
+          DASHBOARD_PASSWORD: test-password
+          COOLIFY_API_URL: http://localhost/api/v1
+          COOLIFY_API_TOKEN: test-token
+          COOLIFY_APPS_SERVER_UUID: apps-server
+          COOLIFY_INFRA_SERVER_UUID: infra-server
+          COOLIFY_DEFAULT_PROJECT_UUID: default-project
+          DATA_PATH: /tmp/test-projects.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-backend-full
+          path: backend/coverage/
+
+  # ─── Frontend: Services ───────────────────────────────────────────────────────
+  frontend-services:
+    name: "Frontend — Services"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run service tests
+        run: npx vitest run src/__tests__/services
+
+  # ─── Frontend: Hooks ─────────────────────────────────────────────────────────
+  frontend-hooks:
+    name: "Frontend — Hooks"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run hook tests
+        run: npx vitest run src/__tests__/hooks
+
+  # ─── Frontend: UI Components ─────────────────────────────────────────────────
+  frontend-components-ui:
+    name: "Frontend — UI Components"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run UI component tests
+        run: npx vitest run src/__tests__/components/ui
+
+  # ─── Frontend: Project Components ────────────────────────────────────────────
+  frontend-components-projects:
+    name: "Frontend — Project Components"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run project component tests
+        run: npx vitest run src/__tests__/components/projects
+
+  # ─── Frontend: Pages ─────────────────────────────────────────────────────────
+  frontend-pages:
+    name: "Frontend — Pages"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run page tests
+        run: npx vitest run src/__tests__/pages
+
+  # ─── Frontend: Full coverage report ──────────────────────────────────────────
+  frontend-coverage:
+    name: "Frontend — Full Coverage"
+    runs-on: ubuntu-latest
+    needs: [frontend-services, frontend-hooks, frontend-components-ui, frontend-components-projects, frontend-pages]
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies
+        run: NODE_ENV=development npm install
+      - name: Run all tests with coverage
+        run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-frontend-full
+          path: frontend/coverage/
