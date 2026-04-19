@@ -1,4 +1,4 @@
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ToastProvider, useToast } from '../../../components/ui/Toast';
 
@@ -39,15 +39,13 @@ describe('ToastProvider / useToast', () => {
     expect(screen.queryByText('Test message')).not.toBeInTheDocument();
   });
 
-  it('auto-dismisses toast after 4 seconds', async () => {
+  it('auto-dismisses toast after 4 seconds', () => {
     vi.useFakeTimers();
     render(<ToastProvider><ToastTrigger /></ToastProvider>);
-    await userEvent.click(screen.getByText('Show Toast'));
+    fireEvent.click(screen.getByText('Show Toast'));
     expect(screen.getByText('Test message')).toBeInTheDocument();
 
-    await act(async () => {
-      vi.advanceTimersByTime(4001);
-    });
+    act(() => { vi.advanceTimersByTime(4001); });
 
     expect(screen.queryByText('Test message')).not.toBeInTheDocument();
     vi.useRealTimers();

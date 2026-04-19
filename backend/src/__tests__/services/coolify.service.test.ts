@@ -1,26 +1,33 @@
+jest.mock('axios', () => {
+  const get = jest.fn();
+  const post = jest.fn();
+  const put = jest.fn();
+  const del = jest.fn();
+  const patch = jest.fn();
+  const client = { get, post, put, delete: del, patch };
+  return {
+    ...jest.requireActual('axios'),
+    default: { create: jest.fn(() => client) },
+    create: jest.fn(() => client),
+    _mockClient: client,
+  };
+});
+
 import { AxiosError, AxiosResponse } from 'axios';
-
-const mockGet = jest.fn();
-const mockPost = jest.fn();
-const mockPut = jest.fn();
-const mockDelete = jest.fn();
-const mockPatch = jest.fn();
-const mockCreate = jest.fn(() => ({
-  get: mockGet, post: mockPost, put: mockPut,
-  delete: mockDelete, patch: mockPatch,
-}));
-
-jest.mock('axios', () => ({
-  ...jest.requireActual('axios'),
-  default: { create: mockCreate },
-  create: mockCreate,
-}));
-
-// Re-require after mock is set up so getCoolifyClient picks up the mock
-jest.resetModules();
-const {
+import {
   coolifyGet, coolifyPost, coolifyPut, coolifyDelete, coolifyPatch,
-} = jest.requireActual('../../services/coolify.service') as typeof import('../../services/coolify.service');
+} from '../../services/coolify.service';
+
+type MockClient = { get: jest.Mock; post: jest.Mock; put: jest.Mock; delete: jest.Mock; patch: jest.Mock };
+type MockAxiosModule = { create: jest.Mock; _mockClient: MockClient };
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const axiosMock = require('axios') as MockAxiosModule;
+const { get: mockGet, post: mockPost, put: mockPut, delete: mockDelete, patch: mockPatch } = axiosMock._mockClient;
+
+beforeEach(() => {
+  // resetMocks clears create's implementation; re-establish it so getCoolifyClient() works
+  axiosMock.create.mockReturnValue(axiosMock._mockClient);
+});
 
 function makeAxiosError(status: number, data: unknown): AxiosError {
   const err = new AxiosError('Request failed');

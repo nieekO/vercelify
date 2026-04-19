@@ -184,7 +184,7 @@ describe('POST /projects (SSE)', () => {
       .send({ name: 'dup', gitRepo: 'u/r', gitBranch: 'main', environment: 'production', createSupabase: false });
 
     expect(res.text).toContain('event: done');
-    expect(mockCoolifyPost).toHaveBeenCalledTimes(3); // project retry + application + deploy
+    expect(mockCoolifyPost).toHaveBeenCalledTimes(4); // initial fail + retry + application + deploy
   });
 
   it('streams error event when provisioning fails', async () => {
@@ -215,8 +215,15 @@ describe('DELETE /projects/:id', () => {
     expect(res.status).toBe(404);
   });
 
-  it('returns 500 when deletion throws', async () => {
+  it('returns 200 even when Coolify deletion throws (errors are swallowed)', async () => {
     mockCoolifyDelete.mockRejectedValue(new Error('delete failed'));
+    const res = await request(app).delete('/projects/test-uuid');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+  });
+
+  it('returns 500 when local deleteProject throws', async () => {
+    mockDelete.mockImplementation(() => { throw new Error('fs error'); });
     const res = await request(app).delete('/projects/test-uuid');
     expect(res.status).toBe(500);
   });

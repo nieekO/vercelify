@@ -46,6 +46,7 @@ describe('provisionSupabase', () => {
   });
 
   it('polls until service becomes healthy', async () => {
+    mockCoolifyGet.mockReset();
     mockCoolifyGet
       .mockResolvedValueOnce({ status: 'starting' })
       .mockResolvedValueOnce({ status: 'starting' })
@@ -61,6 +62,7 @@ describe('provisionSupabase', () => {
   });
 
   it('recognises "healthy" status string', async () => {
+    mockCoolifyGet.mockReset();
     mockCoolifyGet
       .mockResolvedValueOnce({ status: 'healthy' })
       .mockResolvedValueOnce({ data: ENV_VARS });
@@ -70,6 +72,7 @@ describe('provisionSupabase', () => {
   });
 
   it('throws after timeout when service never becomes healthy', async () => {
+    mockCoolifyGet.mockReset();
     const dateSpy = jest.spyOn(Date, 'now');
     dateSpy
       .mockReturnValueOnce(0)       // deadline = MAX_WAIT_MS
@@ -82,6 +85,7 @@ describe('provisionSupabase', () => {
   });
 
   it('uses fallback env var keys for kong/studio/anon/serviceRole', async () => {
+    mockCoolifyGet.mockReset();
     const fallbackEnv = [
       { key: 'SERVICE_FQDN_SUPABASEKONG', value: 'http://kong-fallback.test' },
       { key: 'SERVICE_FQDN_SUPABASESTUDIO', value: 'http://studio-fallback.test' },
@@ -98,6 +102,7 @@ describe('provisionSupabase', () => {
   });
 
   it('handles getServiceEnvVars error gracefully → empty strings', async () => {
+    mockCoolifyGet.mockReset();
     mockCoolifyGet
       .mockResolvedValueOnce(HEALTHY_SERVICE)
       .mockRejectedValueOnce(new Error('env fetch failed'));
@@ -108,6 +113,7 @@ describe('provisionSupabase', () => {
   });
 
   it('uses status from health_status field when status missing', async () => {
+    mockCoolifyGet.mockReset();
     mockCoolifyGet
       .mockResolvedValueOnce({ health_status: 'running' })
       .mockResolvedValueOnce({ data: ENV_VARS });

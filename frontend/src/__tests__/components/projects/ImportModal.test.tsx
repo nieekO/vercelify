@@ -3,15 +3,16 @@ import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
 
-const mockGet = vi.fn();
-const mockPost = vi.fn();
-
 vi.mock('../../../services/api', () => ({
-  default: { get: mockGet, post: mockPost },
+  default: { get: vi.fn(), post: vi.fn() },
 }));
 
+import api from '../../../services/api';
 import { ImportModal } from '../../../components/projects/ImportModal';
 import { ToastProvider } from '../../../components/ui/Toast';
+
+const mockGet = vi.mocked(api.get);
+const mockPost = vi.mocked(api.post);
 
 function wrapper({ children }: { children: React.ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

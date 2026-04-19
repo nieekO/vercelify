@@ -28,7 +28,7 @@ describe('Login page', () => {
 
   it('renders the password input and sign-in button', () => {
     renderLogin();
-    expect(screen.getByRole('textbox', { hidden: true }) ?? screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 

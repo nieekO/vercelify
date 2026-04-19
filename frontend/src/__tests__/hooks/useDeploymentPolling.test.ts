@@ -1,10 +1,12 @@
 import { renderHook, act } from '@testing-library/react';
 import { vi } from 'vitest';
 
-const mockGet = vi.fn();
-vi.mock('../../services/api', () => ({ default: { get: mockGet } }));
+vi.mock('../../services/api', () => ({ default: { get: vi.fn() } }));
 
+import api from '../../services/api';
 import { useDeploymentPolling } from '../../hooks/useDeploymentPolling';
+
+const mockGet = vi.mocked(api.get);
 
 describe('useDeploymentPolling', () => {
   beforeEach(() => {
@@ -31,7 +33,7 @@ describe('useDeploymentPolling', () => {
     const { result } = renderHook(() => useDeploymentPolling('app-uuid', true));
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(3001);
     });
 
     expect(mockGet).toHaveBeenCalledWith('/deployments?app=app-uuid&limit=5');
@@ -43,7 +45,7 @@ describe('useDeploymentPolling', () => {
     const { result } = renderHook(() => useDeploymentPolling('app-uuid', true));
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(3001);
     });
 
     expect(result.current).toEqual([{ uuid: 'd2' }]);
@@ -54,7 +56,7 @@ describe('useDeploymentPolling', () => {
     const { result } = renderHook(() => useDeploymentPolling('app-uuid', true));
 
     await act(async () => {
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(3001);
     });
 
     expect(result.current).toEqual([]);

@@ -3,14 +3,15 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { vi } from 'vitest';
 
-const mockGet = vi.fn();
-const mockDelete = vi.fn();
-
 vi.mock('../../services/api', () => ({
-  default: { get: mockGet, delete: mockDelete },
+  default: { get: vi.fn(), delete: vi.fn() },
 }));
 
+import api from '../../services/api';
 import { useProjects, useProject, useDeleteProject } from '../../hooks/useProjects';
+
+const mockGet = vi.mocked(api.get);
+const mockDelete = vi.mocked(api.delete);
 
 const PROJECT = {
   id: 'p1', name: 'test', environment: 'production', createdAt: '2024-01-01',

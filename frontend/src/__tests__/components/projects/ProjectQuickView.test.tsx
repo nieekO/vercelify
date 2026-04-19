@@ -4,12 +4,14 @@ import { MemoryRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
 
-const mockPost = vi.fn();
-vi.mock('../../../services/api', () => ({ default: { post: mockPost } }));
+vi.mock('../../../services/api', () => ({ default: { post: vi.fn() } }));
 
+import api from '../../../services/api';
 import { ProjectQuickView } from '../../../components/projects/ProjectQuickView';
 import { ToastProvider } from '../../../components/ui/Toast';
 import { VercelifyProject } from '../../../types';
+
+const mockPost = vi.mocked(api.post);
 
 const PROJECT: VercelifyProject = {
   id: 'p1', name: 'finance', environment: 'production', createdAt: '2024-01-15T00:00:00Z',
